@@ -18,11 +18,13 @@ body{
   position:relative;
 }
 
+/* MÁQUINA */
 #icon{
   width:260px;
   image-rendering:pixelated;
 }
 
+/* BEBIDA */
 #drink{
   position:absolute;
   top:55%;
@@ -34,6 +36,7 @@ body{
   opacity:0;
 }
 
+/* GLOW */
 #glow{
   position:absolute;
   top:50%;
@@ -53,6 +56,7 @@ body{
   100%{transform:translate(-50%,-50%) scale(1); opacity:0.6;}
 }
 
+/* ANIMACIÓN SALIR */
 @keyframes salir{
   0%{
     top:55%;
@@ -79,46 +83,28 @@ body{
 <script>
 
 // 🔊 AUDIOS
-const audioSpin = new Audio("moviendose.mp3");
-const audioDrink = new Audio("samantha.mp3");
+const audioSpin = new Audio("./moviendose.mp3");
+const audioDrink = new Audio("./samantha.mp3");
 
-// 🔥 PRELOAD
-audioSpin.load();
-audioDrink.load();
-
-// 🔓 DESBLOQUEO
-let audioReady = false;
+// 🔓 DESBLOQUEO DE AUDIO (CLAVE)
+let audioUnlocked = false;
 
 function unlockAudio(){
-  if(audioReady) return;
+  if(audioUnlocked) return;
 
-  audioSpin.muted = true;
-  audioDrink.muted = true;
+  audioSpin.volume = 0;
+  audioDrink.volume = 0;
 
-  Promise.all([
-    audioSpin.play().catch(()=>{}),
-    audioDrink.play().catch(()=>{})
-  ]).then(()=>{
-    audioSpin.pause();
-    audioDrink.pause();
+  audioSpin.play().then(()=>audioSpin.pause()).catch(()=>{});
+  audioDrink.play().then(()=>audioDrink.pause()).catch(()=>{});
 
-    audioSpin.currentTime = 0;
-    audioDrink.currentTime = 0;
+  audioSpin.volume = 0.7;
+  audioDrink.volume = 1;
 
-    audioSpin.muted = false;
-    audioDrink.muted = false;
-
-    audioReady = true;
-    console.log("🔊 Audio desbloqueado");
-  });
+  audioUnlocked = true;
 }
 
-// 🔥 intenta desbloquear automáticamente
-window.addEventListener("load", () => {
-  setTimeout(unlockAudio, 500);
-});
-
-// también por seguridad
+// activar con interacción
 document.addEventListener("click", unlockAudio);
 document.addEventListener("keydown", unlockAudio);
 
@@ -137,8 +123,6 @@ function activarPerk(){
   if(activo) return;
   activo = true;
 
-  unlockAudio(); // 🔥 clave
-
   let icon = document.getElementById("icon");
   let drink = document.getElementById("drink");
   let glow = document.getElementById("glow");
@@ -146,11 +130,11 @@ function activarPerk(){
   drink.style.display = "none";
   glow.style.display = "none";
 
-  // 🔊 sonido girando
+  // 🔊 SONIDO GIRANDO
   audioSpin.currentTime = 0;
-  audioSpin.volume = 0.7;
   audioSpin.play().catch(()=>{});
 
+  // 🎰 RULETA
   let i = 0;
   let speed = 80;
   let totalTime = 0;
@@ -180,15 +164,16 @@ function activarPerk(){
 
       glow.style.display = "block";
 
+      // 🥤 SALE LA BOTELLA
       setTimeout(()=>{
 
         drink.src = final.drink;
         drink.style.display = "block";
         drink.style.animation = "salir 0.6s ease forwards";
 
+        // 🔊 SONIDO BEBER
         setTimeout(()=>{
           audioDrink.currentTime = 0;
-          audioDrink.volume = 1;
           audioDrink.play().catch(()=>{});
         },500);
 
@@ -197,6 +182,7 @@ function activarPerk(){
 
   }, speed);
 
+  // reset
   setTimeout(()=>{
     drink.style.display = "none";
     glow.style.display = "none";
@@ -215,8 +201,8 @@ window.addEventListener("message", (event) => {
   }
 });
 
-// 🧪 prueba opcional
-// activarPerk();
+// 🧪 PRUEBA (puedes quitar esto luego)
+activarPerk();
 
 </script>
 
