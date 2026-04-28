@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+body{
+  margin:0;
+  background:transparent;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+#container{
+  position:relative;
+}
+
+#icon{
+  width:260px;
+  image-rendering:pixelated;
+}
+
+#drink{
+  position:absolute;
+  top:55%;
+  left:50%;
+  transform:translate(-50%, 0) scale(0.5);
+  width:180px;
+  display:none;
+  image-rendering:pixelated;
+  opacity:0;
+}
+
+#glow{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:300px;
+  height:300px;
+  background:radial-gradient(circle, rgba(0,255,255,0.5), transparent);
+  border-radius:50%;
+  animation:pulse 1.5s infinite;
+  display:none;
+}
+
+@keyframes pulse{
+  0%{transform:translate(-50%,-50%) scale(1); opacity:0.6;}
+  50%{transform:translate(-50%,-50%) scale(1.2); opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(1); opacity:0.6;}
+}
+
+@keyframes salir{
+  0%{
+    top:55%;
+    opacity:0;
+    transform:translate(-50%, 0) scale(0.5);
+  }
+  100%{
+    top:20%;
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+  <div id="glow"></div>
+  <img id="icon" src="jugger.png">
+  <img id="drink">
+</div>
+
+<script>
+
+// 🔊 AUDIOS
+const audioSpin = new Audio("moviendose.mp3");
+const audioDrink = new Audio("samantha.mp3");
+
+// 🔥 PRELOAD
+audioSpin.load();
+audioDrink.load();
+
+// 🔓 DESBLOQUEO
+let audioReady = false;
+
+function unlockAudio(){
+  if(audioReady) return;
+
+  audioSpin.muted = true;
+  audioDrink.muted = true;
+
+  Promise.all([
+    audioSpin.play().catch(()=>{}),
+    audioDrink.play().catch(()=>{})
+  ]).then(()=>{
+    audioSpin.pause();
+    audioDrink.pause();
+
+    audioSpin.currentTime = 0;
+    audioDrink.currentTime = 0;
+
+    audioSpin.muted = false;
+    audioDrink.muted = false;
+
+    audioReady = true;
+    console.log("🔊 Audio desbloqueado");
+  });
+}
+
+// 🔥 intenta desbloquear automáticamente
+window.addEventListener("load", () => {
+  setTimeout(unlockAudio, 500);
+});
+
+// también por seguridad
+document.addEventListener("click", unlockAudio);
+document.addEventListener("keydown", unlockAudio);
+
+// 🎰 PERKS
+const perks = [
+  {icon:"jugger.png", drink:"bt-jugger.png"},
+  {icon:"speed.png", drink:"bt-speed.png"},
+  {icon:"doble.png", drink:"bt-doble.png"},
+  {icon:"quick.png", drink:"bt-quick.png"}
+];
+
+let activo = false;
+
+function activarPerk(){
+
+  if(activo) return;
+  activo = true;
+
+  unlockAudio(); // 🔥 clave
+
+  let icon = document.getElementById("icon");
+  let drink = document.getElementById("drink");
+  let glow = document.getElementById("glow");
+
+  drink.style.display = "none";
+  glow.style.display = "none";
+
+  // 🔊 sonido girando
+  audioSpin.currentTime = 0;
+  audioSpin.volume = 0.7;
+  audioSpin.play().catch(()=>{});
+
+  let i = 0;
+  let speed = 80;
+  let totalTime = 0;
+  let duration = 3500;
+
+  let interval = setInterval(()=>{
+
+    let current = perks[i % perks.length];
+    icon.src = current.icon;
+
+    icon.style.opacity = Math.random() > 0.5 ? "1" : "0.5";
+
+    i++;
+    totalTime += speed;
+
+    if(totalTime > duration * 0.6){
+      speed += 20;
+    }
+
+    if(totalTime >= duration){
+      clearInterval(interval);
+
+      let final = perks[Math.floor(Math.random()*perks.length)];
+
+      icon.src = final.icon;
+      icon.style.opacity = "1";
+
+      glow.style.display = "block";
+
+      setTimeout(()=>{
+
+        drink.src = final.drink;
+        drink.style.display = "block";
+        drink.style.animation = "salir 0.6s ease forwards";
+
+        setTimeout(()=>{
+          audioDrink.currentTime = 0;
+          audioDrink.volume = 1;
+          audioDrink.play().catch(()=>{});
+        },500);
+
+      },500);
+    }
+
+  }, speed);
+
+  setTimeout(()=>{
+    drink.style.display = "none";
+    glow.style.display = "none";
+    drink.style.animation = "";
+    activo = false;
+  },6000);
+}
+
+//////////////////////////////////////////////////
+// 🎯 TIKFINITY
+//////////////////////////////////////////////////
+
+window.addEventListener("message", (event) => {
+  if(event.data === "perk"){
+    activarPerk();
+  }
+});
+
+// 🧪 prueba opcional
+// activarPerk();
+
+</script>
+
+</body>
+</html>
